@@ -1,0 +1,189 @@
+{
+ "game": "Mass Effect Legendary Edition 3",
+ "world_version": "0.1.0",
+ "minimum_ap_version": "0.6.8",
+ "groups": [
+  {
+   "name": "Goal",
+   "options": [
+    {
+     "key": "crucible_intel_total",
+     "display": "Crucible Intel Total",
+     "doc": "Number of Crucible Intel items in the pool. Clamped to safe placement capacity when needed.",
+     "type": "range",
+     "default": 16,
+     "min": 1,
+     "max": 24
+    },
+    {
+     "key": "crucible_intel_required",
+     "display": "Crucible Intel Required",
+     "doc": "Intel needed before the final assault. Clamped to the actual pool total.",
+     "type": "range",
+     "default": 12,
+     "min": 1,
+     "max": 24
+    }
+   ]
+  },
+  {
+   "name": "Checks",
+   "options": [
+    {
+     "key": "objective_checks",
+     "display": "Objective Checks",
+     "doc": "Include the named Mars objective completion checks currently mapped in the source catalog.",
+     "type": "toggle",
+     "default": true
+    },
+    {
+     "key": "credit_checks",
+     "display": "Credit Cache Checks",
+     "doc": "Include fixed credit-cache source interactions. Filler-only pending the missable/deadline audit.",
+     "type": "toggle",
+     "default": true
+    },
+    {
+     "key": "supply_checks",
+     "display": "Supply Checks",
+     "doc": "Include fixed supply/medical interactions. Vanilla full-inventory behavior still requires testing.",
+     "type": "toggle",
+     "default": true
+    },
+    {
+     "key": "armor_checks",
+     "display": "Armor Pickup Checks",
+     "doc": "Include placed armor source interactions. Filler-only pending availability validation.",
+     "type": "toggle",
+     "default": true
+    },
+    {
+     "key": "mod_checks",
+     "display": "Weapon Mod Checks",
+     "doc": "Include placed weapon-mod interactions. Filler-only pending availability validation.",
+     "type": "toggle",
+     "default": true
+    },
+    {
+     "key": "weapon_checks",
+     "display": "Weapon Pickup Checks",
+     "doc": "Include cataloged weapon source interactions, including heavy/special weapons. Experimental and filler-only.",
+     "type": "toggle",
+     "default": false
+    },
+    {
+     "key": "exploration_checks",
+     "display": "Exploration Recovery Checks",
+     "doc": "Include the 76 named galaxy-map recoveries. Recovery and subsequent quest delivery are distinct actions.",
+     "type": "toggle",
+     "default": true
+    },
+    {
+     "key": "codex_checks",
+     "display": "Codex Checks",
+     "doc": "Include codex pages as checks: each page a conversation or mission unlocks after the start (variants of one\npage are one check). Some come from optional conversations, so codex checks never hold progression items.",
+     "type": "toggle",
+     "default": true
+    },
+    {
+     "key": "war_asset_checks",
+     "display": "War Asset Checks",
+     "doc": "Progressive war-asset checks: \"War Asset 1\" up to this number. Each war asset or upgrade you gain (any of them,\nwhichever choices you make) moves you one step up the list. Galaxy-map recoveries have their own checks and don't\ncount here. 0 turns these off. These checks never hold progression items.",
+     "type": "range",
+     "default": 80,
+     "min": 0,
+     "max": 150
+    }
+   ]
+  },
+  {
+   "name": "Items",
+   "options": [
+    {
+     "key": "weapon_items",
+     "display": "Weapons as Items",
+     "doc": "D5: start with only the M3 Predator; every other loadout weapon is an item in the pool.",
+     "type": "toggle",
+     "default": true
+    },
+    {
+     "key": "mission_access",
+     "display": "Mission Access Items",
+     "doc": "Side missions (Grissom Academy, the Monastery, Jacob's scientists, Attican Traverse, the N7 missions, Eden Prime,\nOmega) open on the galaxy map when their \"Mission Access\" item arrives, in any order, instead of following the story.\nThe Krogan arc (Palaven, Sur'Kesh, Tuchanka) and the Geth arc (Dreadnought, Rannoch) need \"Story Arc\" items too;\nthe arcs keep their story order. Off: everything follows the story as usual.",
+     "type": "toggle",
+     "default": true
+    }
+   ]
+  },
+  {
+   "name": "Salvage",
+   "options": [
+    {
+     "key": "salvage",
+     "display": "Salvage",
+     "doc": "Missed-checks salvage: once you've been on a mission that can't be replayed, the Normandy's store terminal sells\n\"<mission> Salvage\". Each purchase sends one check you left behind on that mission.",
+     "type": "toggle",
+     "default": true
+    },
+    {
+     "key": "salvage_price",
+     "display": "Salvage Price per Check",
+     "doc": "Credits per salvaged check.",
+     "type": "choice",
+     "default": "1000",
+     "choices": [
+      "free",
+      "500",
+      "1000",
+      "2500",
+      "5000"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "DLC",
+   "options": [
+    {
+     "key": "enabled_dlc",
+     "display": "Enabled DLC",
+     "doc": "Include mapped pickup sources in the selected official DLC campaigns.",
+     "type": "set",
+     "default": [
+      "Citadel",
+      "From Ashes",
+      "Leviathan",
+      "Omega"
+     ],
+     "choices": [
+      "Citadel",
+      "From Ashes",
+      "Leviathan",
+      "Omega"
+     ]
+    }
+   ]
+  }
+ ],
+ "presets": {
+  "Story Focus": {
+   "crucible_intel_total": 10,
+   "crucible_intel_required": 8,
+   "credit_checks": false,
+   "supply_checks": false,
+   "exploration_checks": false,
+   "codex_checks": false,
+   "war_asset_checks": 40
+  },
+  "Completionist": {
+   "weapon_checks": true,
+   "salvage_price": "500"
+  },
+  "Everything": {
+   "crucible_intel_total": 24,
+   "crucible_intel_required": 20,
+   "weapon_checks": true,
+   "war_asset_checks": 110
+  }
+ }
+}
