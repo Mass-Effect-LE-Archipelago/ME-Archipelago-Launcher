@@ -18,7 +18,7 @@ no game assets. The art and effects are drawn in code. You need your own copy of
 ## Use it
 
 1. Install [Archipelago](https://github.com/ArchipelagoMW/Archipelago/releases) 0.6.8 or newer.
-2. Download `Mass Effect Archipelago Launcher.exe` from [Releases](https://gitlab.com/unowa001/mass-effect-archipelago-launcher/-/releases)
+2. Download `Mass-Effect-Archipelago-Launcher.exe` from [Releases](https://gitlab.com/unowa001/mass-effect-archipelago-launcher/-/releases)
    and run it. Nothing else needs to be installed: the launcher is self-contained.
 3. Pick a campaign on the left.
    - **Deploy**: downloads the game's newest release (checked against its SHA-256) and installs it. Anything replaced is

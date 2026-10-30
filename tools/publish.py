@@ -1,7 +1,8 @@
 """Build the single-file launcher into dist/ with its SHA-256.
 
 usage: python tools/publish.py [version]      (default: the csproj <Version>)
-Output: dist/Mass Effect Archipelago Launcher.exe (self-contained, win-x64) and dist/SHA256SUMS.
+Output: dist/Mass Effect Archipelago Launcher.exe (self-contained, win-x64) and dist/SHA256SUMS. GitLab package file names
+can't contain spaces: the release uploads it as Mass-Effect-Archipelago-Launcher.exe.
 """
 import hashlib
 import pathlib
