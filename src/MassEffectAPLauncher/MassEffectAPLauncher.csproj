@@ -7,7 +7,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>Mass Effect Archipelago Launcher</AssemblyName>
     <RootNamespace>APSetup</RootNamespace>
-    <Version>0.5.0</Version>
+    <Version>0.5.1</Version>
     <Product>Mass Effect Archipelago Launcher</Product>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>launcher.ico</ApplicationIcon>

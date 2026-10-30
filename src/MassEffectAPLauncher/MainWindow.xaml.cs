@@ -1,5 +1,5 @@
 // The launcher window: a campaign rail (ME1/ME2/ME3) and four pages for the selected game.
-//   Deploy:  status, the game's newest GitLab release, Download/Install/Update, Launch, Uninstall, a log.
+//   Deploy:  status, the game's newest GitHub release, Download/Install/Update, Launch, Uninstall, a log.
 //   Folders: the Legendary Edition, Archipelago and Mod Manager folders (detected, remembered), and background music:
 //            any audio file on the player's PC, looped quietly (the launcher ships no music of its own).
 //   Options: the player's options from the world's schema, saved as a YAML into Archipelago's Players folder.
@@ -275,7 +275,7 @@ public partial class MainWindow : Window
         }
         Link("Archipelago", () => "https://archipelago.gg");
         Link("This game's project page", () => Releases.ProjectUrl(Releases.Projects[_game.Profile.Id]));
-        Link("Report a problem", () => Releases.ProjectUrl(Releases.Projects[_game.Profile.Id]) + "/-/issues");
+        Link("Report a problem", () => Releases.ProjectUrl(Releases.Projects[_game.Profile.Id]) + "/issues");
         Link("Launcher project page", () => Releases.ProjectUrl(Releases.LauncherProject));
     }
 
@@ -455,7 +455,7 @@ public partial class MainWindow : Window
                                                Foreground = color ?? (Brush)FindResource("Text"), FontFamily = (FontFamily)FindResource("Display") });
         }
         var latest = _game.Latest;
-        Pair("LATEST ON GITLAB", !_game.Checked ? "Contacting GitLab..." : latest != null ? $"{latest.Tag}  ·  {latest.Released:d MMM yyyy}"
+        Pair("LATEST ON GITHUB", !_game.Checked ? "Contacting GitHub..." : latest != null ? $"{latest.Tag}  ·  {latest.Released:d MMM yyyy}"
                                  : _game.LatestError ?? "No release published yet");
         var payloadTag = PayloadTag();
         Pair("ON THIS PC", payloadTag ?? "Not downloaded");
@@ -563,7 +563,7 @@ public partial class MainWindow : Window
         await Task.WhenAll(_campaigns.Select(async c =>
         {
             try { c.Latest = await Releases.Latest(Releases.Projects[c.Profile.Id]); }
-            catch (Exception ex) { c.LatestError = "GitLab unreachable: " + ex.Message; }
+            catch (Exception ex) { c.LatestError = "GitHub unreachable: " + ex.Message; }
             c.Checked = true;
             Log(c.Latest != null ? $"{c.Profile.Title}: latest release {c.Latest.Tag}." : $"{c.Profile.Title}: {c.LatestError ?? "no release published yet"}.");
         }));
@@ -607,12 +607,12 @@ public partial class MainWindow : Window
             var payload = Payload;
             if ((payload == null || UpdateAvailable()) && game.Latest != null)
             {
-                Log($"Downloading {game.Profile.Title} {game.Latest.Tag} from GitLab...");
+                Log($"Downloading {game.Profile.Title} {game.Latest.Tag} from GitHub...");
                 var progress = new Progress<(double, string)>(p => { if (_game == game) Progress(p.Item1, p.Item2); });
                 payload = await Releases.Fetch(game.Profile, game.Latest, progress, line => Dispatcher.Invoke(() => Log(line)));
                 game.Options = OptionsModel.For(game.Profile, payload);
             }
-            if (payload == null) throw new InvalidOperationException("There is nothing to install yet: the game has no release on GitLab.");
+            if (payload == null) throw new InvalidOperationException("There is nothing to install yet: the game has no release on GitHub.");
             var options = new Installer.Options();
             foreach (var box in _movies)
                 if (box.IsChecked != true) options.KeepMovies.Add((string)box.Tag);
@@ -961,10 +961,10 @@ public partial class MainWindow : Window
         var latest = _game.Latest;
         notes.Children.Add(new TextBlock { Text = latest != null ? (latest.Name ?? latest.Tag) : "No release notes", FontFamily = (FontFamily)FindResource("Display"),
                                            FontSize = 18, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 0, 0, 8) });
-        notes.Children.Add(Dim(latest != null ? Releases.PlainNotes(latest.Notes) : _game.LatestError ?? "This game has no release on GitLab yet.", 13));
+        notes.Children.Add(Dim(latest != null ? Releases.PlainNotes(latest.Notes) : _game.LatestError ?? "This game has no release on GitHub yet.", 13));
         var buttons = new WrapPanel { Margin = new Thickness(0, 14, 0, 0) };
         if (latest != null) buttons.Children.Add(Btn("Open release page", () => Open(latest.WebUrl)));
-        buttons.Children.Add(Btn("All releases", () => Open(Releases.ProjectUrl(Releases.Projects[_game.Profile.Id]) + "/-/releases")));
+        buttons.Children.Add(Btn("All releases", () => Open(Releases.ProjectUrl(Releases.Projects[_game.Profile.Id]) + "/releases")));
         notes.Children.Add(buttons);
         var notesPanel = Panel("RELEASE NOTES", new ScrollViewer { Content = notes, VerticalScrollBarVisibility = ScrollBarVisibility.Auto });
         Grid.SetColumn(notesPanel, 2);

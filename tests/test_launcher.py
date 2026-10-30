@@ -1,7 +1,7 @@
 """Download + install round trips of the launcher in scratch folders (never a real game install).
 
 usage: python tests/test_launcher.py [--exe <launcher exe>] [--rad-bink <the game's own RAD bink2w64.dll>]
-For each game with a GitLab release: --fetch it, build a fake Legendary Edition + Archipelago folder, --install from the
+For each game with a GitHub release: --fetch it, build a fake Legendary Edition + Archipelago folder, --install from the
 downloaded payload, require --check to pass, --uninstall, and require every file to be byte-identical to before.
 ME2/ME3 need a real RAD bink2w64.dll (the installer checks it is the game's own before adding the ASI loader); without
 --rad-bink they are skipped. Also checks that --write-yaml writes every preset.
@@ -41,7 +41,7 @@ def run(exe: pathlib.Path, *args: str, ok: bool = True) -> str:
 def round_trip(exe: pathlib.Path, game: str, rad: pathlib.Path | None, base: pathlib.Path) -> list[str]:
     latest = subprocess.run([str(exe), "--latest", game], capture_output=True, text=True)
     if latest.returncode != 0:
-        print(f"  {game}: skipped ({latest.stdout.strip() or 'no GitLab release'})")
+        print(f"  {game}: skipped ({latest.stdout.strip() or 'no GitHub release'})")
         return []
     if game != "ME1" and rad is None:
         print(f"  {game}: skipped (no --rad-bink)")

@@ -1,11 +1,10 @@
-// Where each game's files come from: the latest release of that game's own GitLab project. The launcher downloads the
-// release's files into a cache, checks them against the SHA-256 sums the release publishes, and lays them out as the
+// Where each game's files come from: the latest release of that game's own GitHub repository. The launcher downloads
+// the release's files into a cache, checks them against the SHA-256 sums the release publishes, and lays them out as the
 // payload folder Installer expects (apworld, ASI\<bridge>, <ModFolder>\<DlcName>, optional bink2w64.dll and options.json).
 //
 // Releases are read as published, so older layouts work unchanged:
 //   - a "*payload*.zip" link: only that file is downloaded (already in the payload layout);
-//   - otherwise every .apworld / .zip / .asi / .dll link, plus generic-package links written in the release notes
-//     (ME2 0.2.2 ships one zip that way); bundled setup apps are skipped.
+//   - otherwise every .apworld / .zip / .asi / .dll asset; bundled setup apps are skipped.
 // The payload is then assembled by file and folder name, so it does not matter which zip a part came in.
 using System.IO.Compression;
 using System.Net.Http;
@@ -27,16 +26,16 @@ sealed class ReleaseInfo
 
 static partial class Releases
 {
-    public const string LauncherProject = "unowa001/mass-effect-archipelago-launcher";
+    public const string LauncherProject = "Mass-Effect-LE-Archipelago/ME-Archipelago-Launcher";
 
     public static readonly Dictionary<string, string> Projects = new()
     {
-        ["ME1"] = "unowa001/ArchipelagoME1",
-        ["ME2"] = "unowa001/ArchipelagoME2",
-        ["ME3"] = "unowa001/archipelagome3",
+        ["ME1"] = "Mass-Effect-LE-Archipelago/ME1-APWorld",
+        ["ME2"] = "Mass-Effect-LE-Archipelago/ME2-APWorld",
+        ["ME3"] = "Mass-Effect-LE-Archipelago/ME3-AP-World",
     };
 
-    public static string ProjectUrl(string project) => "https://gitlab.com/" + project;
+    public static string ProjectUrl(string project) => "https://github.com/" + project;
 
     public static string CacheRoot =>
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MassEffectAPSetup", "downloads");
@@ -50,13 +49,14 @@ static partial class Releases
         return client;
     }
 
-    static string Api(string project) => "https://gitlab.com/api/v4/projects/" + Uri.EscapeDataString(project);
+    static string Api(string project) => "https://api.github.com/repos/" + project;
 
     // The newest published release (null if the project has none yet).
     public static async Task<ReleaseInfo> Latest(string project, CancellationToken cancel = default)
     {
-        // The answer is kept for a few minutes, and used when GitLab can't be reached or rate-limits anonymous
-        // API calls (429), so reopening the launcher doesn't ask again and an offline launcher still knows the release.
+        // The answer is kept for a few minutes, and used when GitHub can't be reached or rate-limits anonymous
+        // API calls (60 an hour, 403/429), so reopening the launcher doesn't ask again and an offline launcher still
+        // knows the release.
         var cache = Path.Combine(CacheRoot, "releases", Safe(project.Replace('/', '_')) + ".json");
         string json = null;
         if (File.Exists(cache) && DateTime.UtcNow - File.GetLastWriteTimeUtc(cache) < TimeSpan.FromMinutes(10)) json = File.ReadAllText(cache);
@@ -64,13 +64,23 @@ static partial class Releases
         {
             try
             {
-                using var response = await Http.GetAsync(Api(project) + "/releases?per_page=5&order_by=released_at&sort=desc", cancel);
+                using var request = new HttpRequestMessage(HttpMethod.Get, Api(project) + "/releases?per_page=5");
+                request.Headers.Accept.ParseAdd("application/vnd.github+json");
+                using var response = await Http.SendAsync(request, cancel);
                 if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
                     throw new InvalidOperationException($"{ProjectUrl(project)} was not found (it may be private).");
-                response.EnsureSuccessStatusCode();
-                json = await response.Content.ReadAsStringAsync(cancel);
-                Directory.CreateDirectory(Path.GetDirectoryName(cache));
-                File.WriteAllText(cache, json);
+                if (response.StatusCode is System.Net.HttpStatusCode.Forbidden or System.Net.HttpStatusCode.TooManyRequests)
+                {
+                    if (File.Exists(cache)) json = File.ReadAllText(cache);
+                    else throw new InvalidOperationException("GitHub is rate-limiting release checks; try again in a few minutes.");
+                }
+                else
+                {
+                    response.EnsureSuccessStatusCode();
+                    json = await response.Content.ReadAsStringAsync(cancel);
+                    Directory.CreateDirectory(Path.GetDirectoryName(cache));
+                    File.WriteAllText(cache, json);
+                }
             }
             catch (HttpRequestException) when (File.Exists(cache)) { json = File.ReadAllText(cache); }
             catch (TaskCanceledException) when (File.Exists(cache) && !cancel.IsCancellationRequested) { json = File.ReadAllText(cache); }
@@ -78,32 +88,21 @@ static partial class Releases
         using var doc = JsonDocument.Parse(json);
         foreach (var r in doc.RootElement.EnumerateArray())
         {
-            if (r.TryGetProperty("upcoming_release", out var upcoming) && upcoming.ValueKind == JsonValueKind.True) continue;
+            if (r.TryGetProperty("draft", out var draft) && draft.ValueKind == JsonValueKind.True) continue;
             var info = new ReleaseInfo
             {
                 Tag = r.GetProperty("tag_name").GetString(),
                 Name = r.TryGetProperty("name", out var n) ? n.GetString() : null,
-                Notes = r.TryGetProperty("description", out var d) ? d.GetString() ?? "" : "",
-                Released = r.TryGetProperty("released_at", out var at) && at.ValueKind == JsonValueKind.String ? at.GetDateTime() : DateTime.MinValue,
-                WebUrl = r.TryGetProperty("_links", out var links) && links.TryGetProperty("self", out var self) ? self.GetString() : ProjectUrl(project) + "/-/releases",
+                Notes = r.TryGetProperty("body", out var d) ? d.GetString() ?? "" : "",
+                Released = r.TryGetProperty("published_at", out var at) && at.ValueKind == JsonValueKind.String ? at.GetDateTime() : DateTime.MinValue,
+                WebUrl = r.TryGetProperty("html_url", out var html) ? html.GetString() : ProjectUrl(project) + "/releases",
             };
-            foreach (var link in r.GetProperty("assets").GetProperty("links").EnumerateArray())
-                info.Assets.Add(new ReleaseAsset(link.GetProperty("name").GetString(), link.GetProperty("url").GetString()));
-            // files linked only from the notes, e.g. [ME2LE-AP-0.2.2.zip](https://gitlab.com/api/v4/projects/.../packages/generic/...)
-            foreach (Match m in NotesLink().Matches(info.Notes))
-            {
-                var url = m.Groups["url"].Value;
-                if (url.StartsWith('/')) url = ProjectUrl(project) + url;
-                var name = Uri.UnescapeDataString(url.Split('?')[0].Split('/').Last());
-                if (!info.Assets.Any(a => a.Name.Equals(name, StringComparison.OrdinalIgnoreCase))) info.Assets.Add(new ReleaseAsset(name, url));
-            }
+            foreach (var asset in r.GetProperty("assets").EnumerateArray())
+                info.Assets.Add(new ReleaseAsset(asset.GetProperty("name").GetString(), asset.GetProperty("browser_download_url").GetString()));
             return info;
         }
         return null;
     }
-
-    [GeneratedRegex(@"\]\((?<url>(https://gitlab\.com)?/[^)\s]*(/packages/generic/|/uploads/)[^)\s]+)\)")]
-    private static partial Regex NotesLink();
 
     // The files to download for a game: a payload zip if the release has one, otherwise the game's parts.
     public static List<ReleaseAsset> PayloadAssets(ReleaseInfo release)
