@@ -73,6 +73,15 @@ The tests download each game's release and install it into scratch folders, neve
 line the tests use is listed at the top of `src/MassEffectAPLauncher/Program.cs`. `--screenshot <png> <game> <page>`
 renders the window for docs.
 
+## Credits
+
+- **Original launcher:** [ME-Archipelago-Launcher](https://github.com/Mass-Effect-LE-Archipelago/ME-Archipelago-Launcher)
+  by Jerrod (Unowa001).
+- **Modified by Tyler Kessler** (November 2026): the launcher uses its owner's fork of a game when that has releases,
+  and reads each release's option schema. Every change is in the git history.
+- [ME3Tweaks](https://me3tweaks.com): LegendaryExplorerCore (GPL-3.0), used for the LE1 and DLC file tables.
+- [Archipelago](https://archipelago.gg): the multiworld framework the launcher installs games for.
+
 ## License
 
 GPL-3.0 (the launcher links LegendaryExplorerCore, which is GPL-3.0). See [LICENSE](LICENSE).
